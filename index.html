@@ -59,6 +59,71 @@ footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
 @media(max-width:760px){.page-header{justify-content:center}.heading-area{text-align:center;flex-basis:100%}.stats{justify-content:center;width:100%}.stat{flex:1;max-width:140px}.work-area{grid-template-columns:1fr}.app{padding:14px 11px 32px}}
 @media(max-width:400px){.controls{grid-template-columns:1fr 1fr}.controls .play{grid-column:1/-1}.program-line{gap:5px}.line-tools{gap:2px}.line-tools button{min-width:27px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+
+/* Distribución en tres columnas para ver mapa y algoritmo a la vez */
+.app{max-width:1360px;padding:12px 14px 26px}
+.page-header{gap:12px;margin-bottom:12px}
+.eyebrow{font-size:.62rem;letter-spacing:.14em}
+h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
+.subtitle{font-size:.82rem}
+.game-layout{display:grid;grid-template-columns:clamp(185px,18vw,220px) minmax(0,1fr) clamp(250px,25vw,310px);gap:12px;align-items:start}
+.toolbox{grid-column:1;grid-row:1}
+.world-panel{grid-column:2;grid-row:1}
+.program-box{grid-column:3;grid-row:1}
+.toolbox,.program-box,.world-panel{padding:12px;min-width:0}
+.panel-title{font-size:.9rem}
+.world-top{gap:5px;margin-bottom:8px}
+.mission{font-size:.73rem}
+.map-frame{max-width:min(100%,78vh)}
+.message{margin-top:10px;padding:9px 10px;min-height:46px;font-size:.82rem}
+.toolbox .helper{margin:8px 0 11px;font-size:.78rem;line-height:1.35}
+.action-grid{grid-template-columns:1fr;gap:9px}
+.action{min-height:45px;font-size:.82rem}
+.stepper{padding:7px;gap:5px;flex-wrap:wrap}
+.stepper label{font-size:.75rem}
+.stepper input{height:35px;width:66px}
+.tool-note{font-size:.74rem;line-height:1.35;margin-top:12px}
+.program-top{margin-bottom:9px}
+.program-list{min-height:108px;max-height:min(50vh,460px);overflow-y:auto;overscroll-behavior:contain;padding-right:3px}
+.program-line{gap:4px;padding:6px 5px}
+.line-text{font-size:.8rem}
+.line-number{min-width:17px;font-size:.7rem}
+.line-tools{gap:2px}
+.line-tools button{min-width:25px;height:28px}
+.boundary{padding:4px;font-size:.85rem}
+.controls{grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.control{min-height:43px;font-size:.8rem}
+.control.play{grid-column:1/-1}
+.legend{margin:13px 0 0}
+/* En tablet, el mapa queda fijo mientras se edita debajo */
+@media(max-width:950px){
+  .game-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .world-panel{grid-column:1/-1;grid-row:1;position:sticky;top:4px;z-index:3;box-shadow:0 8px 18px #081423cc}
+  .map-frame{max-width:min(100%,56vh)}
+  .toolbox{grid-column:1;grid-row:2}
+  .program-box{grid-column:2;grid-row:2}
+  .action-grid{grid-template-columns:1fr 1fr}
+  .program-list{max-height:38vh}
+}
+@media(max-width:600px){
+  .app{padding:9px 9px 20px}
+  .page-header{margin-bottom:8px}
+  .heading-area{text-align:center}
+  h1{font-size:1.55rem}
+  .subtitle{font-size:.75rem}
+  .game-layout{grid-template-columns:minmax(0,1fr);gap:10px}
+  .world-panel{grid-column:1;grid-row:1;padding:8px;top:3px}
+  .world-top{margin-bottom:5px}
+  .mission{font-size:.65rem}
+  .map-frame{max-width:min(100%,44vh)}
+  .message{min-height:34px;font-size:.73rem;margin-top:7px;padding:7px}
+  .toolbox{grid-column:1;grid-row:2}
+  .program-box{grid-column:1;grid-row:3}
+  .action-grid{grid-template-columns:1fr 1fr}
+  .program-list{max-height:42vh}
+  .stat{padding:4px 6px}
+  .stat-value{font-size:1.07rem}
+}
 </style>
 </head>
 <body>
@@ -71,15 +136,7 @@ footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
 </div>
 <div class="stats" aria-label="Contadores"><div class="stat"><span class="stat-label">Instrucciones</span><span class="stat-value" id="instructions">0</span></div><div class="stat"><span class="stat-label">Intentos</span><span class="stat-value" id="attempts">0</span></div><div class="stat"><span class="stat-label">Casillas andadas</span><span class="stat-value" id="moves">0</span></div></div>
 </header>
-<section class="panel world-panel" aria-labelledby="map-title">
-<div class="world-top"><h2 class="panel-title" id="map-title">01 · Mapa del tesoro</h2><span class="mission">Nivel 1 · Evita las rocas y abre el cofre</span></div>
-<div class="world-body">
-<div class="map-frame"><canvas id="map" width="448" height="320" role="img" aria-label="Mapa de 7 columnas y 5 filas. El pirata comienza abajo a la izquierda mirando hacia la derecha. El tesoro está en la columna 7, fila 2. Hay rocas que debes evitar."></canvas><div class="map-ribbon">PIRATA → COFRE</div></div>
-</div>
-<div class="message" id="message" role="status" aria-live="polite">El pirata espera tus órdenes. Añade instrucciones y pulsa «Ejecutar».</div>
-</section>
-<h2 class="work-title">02 · Construye tu algoritmo</h2>
-<div class="work-area">
+<div class="game-layout">
 <section class="panel toolbox" aria-labelledby="tools-title">
 <h3 class="panel-title" id="tools-title">Elige instrucciones</h3>
 <p class="helper">Haz clic en cada orden. Se añadirá al final del algoritmo, en orden.</p>
@@ -92,6 +149,13 @@ footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
 <button type="button" class="action" data-command="stop">■ Parar</button>
 </div>
 <p class="tool-note">Atención: «Andar» avanza en la dirección en la que mira el pirata. Girar no cambia de casilla.</p>
+</section>
+<section class="panel world-panel" aria-labelledby="map-title">
+<div class="world-top"><h2 class="panel-title" id="map-title">Mapa del tesoro</h2><span class="mission">Nivel 1 · Evita las rocas y abre el cofre</span></div>
+<div class="world-body">
+<div class="map-frame"><canvas id="map" width="448" height="320" role="img" aria-label="Mapa de 7 columnas y 5 filas. El pirata comienza abajo a la izquierda mirando hacia la derecha. El tesoro está en la columna 7, fila 2. Hay rocas que debes evitar."></canvas><div class="map-ribbon">PIRATA → COFRE</div></div>
+</div>
+<div class="message" id="message" role="status" aria-live="polite">El pirata espera tus órdenes. Añade instrucciones y pulsa «Ejecutar».</div>
 </section>
 <section class="panel program-box" aria-labelledby="program-title">
 <div class="program-top"><h3 class="panel-title" id="program-title">Tu algoritmo</h3><button type="button" id="clear" class="small-btn">Borrar todo</button></div>
@@ -106,7 +170,7 @@ footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
 </section>
 </div>
 <p class="legend">Consejo: utiliza ↑ y ↓ en la lista para cambiar una instrucción de lugar. ✕ la elimina. No hay límite de intentos.</p>
-<footer>Versión 1.0 · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
+<footer>Versión 1.1 · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
 </main>
 <script>
 'use strict';
