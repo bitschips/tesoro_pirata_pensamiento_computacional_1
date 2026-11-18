@@ -56,6 +56,25 @@ canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
 .control.play{color:#112e26;background:#8fe4b6;border-color:#b5ffdb}.control:hover:not(:disabled){filter:brightness(1.12)}
 .legend{margin:16px 0 0;text-align:center;color:#b3c7d7;font-size:.79rem;line-height:1.5}
 footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
+.version-trigger{appearance:none;border:0;padding:2px 3px;background:none;color:#a7daf1;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-size:inherit}
+.version-trigger:hover{color:#ffe6a2}
+.character-dialog{width:min(92vw,480px);max-height:90vh;overflow-y:auto;border:2px solid #6b90ab;border-radius:13px;background:#1a2a42;color:#eaf4fb;padding:21px;box-shadow:0 18px 80px #0009}
+.character-dialog::backdrop{background:#071020ca}
+.character-dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.character-dialog h2{margin:0;color:#ffd56c;font-size:1.4rem}
+.character-dialog p{font-size:.9rem;line-height:1.5}
+.dialog-close{background:#304968;border:1px solid #6b90ab;color:white;border-radius:6px;padding:6px 11px}
+.upload-label{font-weight:800;display:block;margin-bottom:8px;color:#83dbef}
+#characterFile{width:100%;font-size:.83rem;max-width:100%;color:#eaf4fb}
+#characterFile::file-selector-button{background:#2a5071;color:white;border:1px solid #527494;border-radius:6px;padding:9px;cursor:pointer}
+.character-dialog .upload-help{color:#afc0d1;font-size:.78rem}
+.character-preview{display:flex;align-items:center;gap:16px;margin:12px 0;padding:10px;background:#102239;border-radius:8px;font-size:.87rem}
+.character-preview[hidden]{display:none}
+.character-preview img{width:64px;height:64px;object-fit:contain;image-rendering:pixelated;border:1px solid #67869e;background:repeating-conic-gradient(#3c5471 0% 25%,#28415e 0% 50%) 50%/12px 12px}
+.character-feedback{min-height:1.3em;color:#c8e8f6}
+.dialog-buttons{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px}
+.dialog-buttons button{min-height:38px}
+
 @media(max-width:760px){.page-header{justify-content:center}.heading-area{text-align:center;flex-basis:100%}.stats{justify-content:center;width:100%}.stat{flex:1;max-width:140px}.work-area{grid-template-columns:1fr}.app{padding:14px 11px 32px}}
 @media(max-width:400px){.controls{grid-template-columns:1fr 1fr}.controls .play{grid-column:1/-1}.program-line{gap:5px}.line-tools{gap:2px}.line-tools button{min-width:27px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
@@ -170,8 +189,26 @@ h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
 </section>
 </div>
 <p class="legend">Consejo: utiliza ↑ y ↓ en la lista para cambiar una instrucción de lugar. ✕ la elimina. No hay límite de intentos.</p>
-<footer>Versión 1.2 · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
+<footer><button type="button" class="version-trigger" id="characterSettings" title="Cambiar personaje del mapa" aria-haspopup="dialog">Versión 1.3</button> · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
 </main>
+<dialog id="characterDialog" class="character-dialog" aria-labelledby="characterTitle">
+  <div class="character-dialog-heading">
+    <h2 id="characterTitle">Cambiar personaje</h2>
+    <button type="button" id="characterClose" class="dialog-close" aria-label="Cerrar">✕</button>
+  </div>
+  <p>Selecciona una imagen de tu ordenador para sustituir al pirata. Puede ser pixel art, con fondo transparente.</p>
+  <label class="upload-label" for="characterFile">Elegir imagen del personaje</label>
+  <input type="file" id="characterFile" accept="image/*,.svg,.bmp,.avif,.tif,.tiff,.heic,.heif">
+  <p class="upload-help">Se admiten los formatos de imagen que pueda abrir tu navegador (PNG, JPG, WebP, GIF, SVG, etc.). Las imágenes animadas se mostrarán como una imagen fija.</p>
+  <div class="character-preview" id="previewArea" hidden>
+    <span>Vista previa:</span><img id="characterPreview" alt="Personaje que aparecerá en el mapa" width="64" height="64">
+  </div>
+  <p id="characterFeedback" class="character-feedback" role="status" aria-live="polite"></p>
+  <div class="dialog-buttons">
+    <button type="button" id="originalPirate" class="small-btn">Restaurar pirata original</button>
+    <button type="button" id="characterDone" class="small-btn">Listo</button>
+  </div>
+</dialog>
 <script>
 'use strict';
 const canvas=document.getElementById('map');
@@ -190,6 +227,15 @@ const playButton=document.getElementById('play');
 const stepButton=document.getElementById('step');
 const resetButton=document.getElementById('reset');
 const clearButton=document.getElementById('clear');
+const characterDialog=document.getElementById('characterDialog');
+const characterFile=document.getElementById('characterFile');
+const characterPreview=document.getElementById('characterPreview');
+const previewArea=document.getElementById('previewArea');
+const characterFeedback=document.getElementById('characterFeedback');
+const CHARACTER_KEY='tesoroPirataPersonajeV1';
+let customCharacter=null;
+let currentCharacterData='';
+let imageLoadToken=0;
 const stats={instructions:document.getElementById('instructions'),attempts:document.getElementById('attempts'),moves:document.getElementById('moves')};
 let program=[],attempts=0,moves=0,pirate=startingPosition(),cursor=0,activeIndex=-1,running=false,sessionStarted=false,finished=false,generation=0,collected=false;
 function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
@@ -223,6 +269,13 @@ rect(x+28,y+35,10,12,'#ffe89e');rect(x+6,y+12,5,5,'#fff5bb');rect(x+8,y+6,2,14,'
 function paintPirate(){
 const px=pirate.x*TILE+8,py=pirate.y*TILE+4;
 ctx.save();ctx.translate(px+24,py+28);ctx.rotate(pirate.direction*Math.PI/2);ctx.translate(-24,-28);
+if(customCharacter){
+  const width=customCharacter.naturalWidth,height=customCharacter.naturalHeight;
+  const scale=Math.min(48/width,48/height);
+  const drawWidth=width*scale,drawHeight=height*scale;
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(customCharacter,(48-drawWidth)/2,4+(48-drawHeight)/2,drawWidth,drawHeight);
+}else{
 rect(5,49,38,5,'#c69d6c');rect(12,39,10,10,'#3b4665');rect(26,39,10,10,'#3b4665');
 rect(10,48,13,5,'#372d31');rect(26,48,13,5,'#372d31');
 rect(8,28,34,15,'#b64641');rect(13,30,23,10,'#e35b4c');
@@ -231,6 +284,7 @@ rect(14,14,23,16,'#e9ae7b');rect(15,21,8,5,'#fff0cc');
 rect(25,21,10,7,'#263445');rect(19,26,12,4,'#995537');
 rect(12,11,28,7,'#272e3e');rect(7,16,38,5,'#272e3e');
 rect(17,4,19,9,'#323848');rect(17,10,19,3,'#ebcf68');rect(39,12,7,4,'#c75c52');
+}
 ctx.restore();
 const cx=pirate.x*TILE+32,cy=pirate.y*TILE+32;
 ctx.save();ctx.translate(cx,cy);ctx.rotate(pirate.direction*Math.PI/2);
@@ -345,6 +399,83 @@ clearButton.addEventListener('click',()=>{
 if(running)return;
 program=[];resetGame(false);status('Algoritmo borrado. Puedes construir uno nuevo.')
 });
+
+// El selector sólo aparece al hacer clic en el número de versión.
+function updateCharacterPreview(){
+  const hasCustom=Boolean(customCharacter&&currentCharacterData);
+  previewArea.hidden=!hasCustom;
+  if(hasCustom)characterPreview.src=currentCharacterData;
+  else characterPreview.removeAttribute('src');
+}
+function applyCharacter(data,fromStorage=false){
+  const token=++imageLoadToken;
+  const newImage=new Image();
+  newImage.onload=()=>{
+    if(token!==imageLoadToken)return;
+    customCharacter=newImage;
+    currentCharacterData=data;
+    updateCharacterPreview();
+    drawMap();
+    if(!fromStorage){
+      try{
+        localStorage.setItem(CHARACTER_KEY,data);
+        characterFeedback.textContent='Personaje cambiado y guardado en este navegador.';
+      }catch(error){
+        characterFeedback.textContent='Personaje cambiado. El navegador no ha podido guardarlo para próximas visitas.';
+      }
+    }
+  };
+  newImage.onerror=()=>{
+    if(token!==imageLoadToken)return;
+    characterFeedback.textContent='No se ha podido abrir esta imagen. Prueba con PNG, JPG o WebP.';
+    if(fromStorage){try{localStorage.removeItem(CHARACTER_KEY)}catch(error){}}
+  };
+  newImage.src=data;
+}
+document.getElementById('characterSettings').addEventListener('click',()=>{
+  updateCharacterPreview();
+  characterFeedback.textContent=customCharacter?'Se está utilizando tu personaje personalizado.':'Se está utilizando el pirata original.';
+  characterDialog.showModal();
+});
+document.getElementById('characterClose').addEventListener('click',()=>characterDialog.close());
+document.getElementById('characterDone').addEventListener('click',()=>characterDialog.close());
+document.getElementById('originalPirate').addEventListener('click',()=>{
+  ++imageLoadToken;
+  customCharacter=null;currentCharacterData='';characterFile.value='';
+  try{localStorage.removeItem(CHARACTER_KEY)}catch(error){}
+  updateCharacterPreview();drawMap();
+  characterFeedback.textContent='Pirata original restaurado.';
+});
+characterFile.addEventListener('change',()=>{
+  const file=characterFile.files&&characterFile.files[0];
+  if(!file)return;
+  if(file.size>25*1024*1024){characterFeedback.textContent='La imagen es demasiado grande. Elige una de menos de 25 MB.';return}
+  const token=++imageLoadToken;
+  const url=URL.createObjectURL(file);
+  const image=new Image();
+  image.onload=()=>{
+    URL.revokeObjectURL(url);
+    if(token!==imageLoadToken)return;
+    const width=image.naturalWidth,height=image.naturalHeight;
+    if(!width||!height){characterFeedback.textContent='Imagen sin dimensiones válidas.';return}
+    // Normalizar a PNG pequeño, con transparencia y píxeles nítidos.
+    const scale=Math.min(1,128/Math.max(width,height));
+    const reduced=document.createElement('canvas');
+    reduced.width=Math.max(1,Math.round(width*scale));
+    reduced.height=Math.max(1,Math.round(height*scale));
+    const c=reduced.getContext('2d');
+    if(!c){characterFeedback.textContent='Tu navegador no puede procesar esta imagen.';return}
+    c.imageSmoothingEnabled=false;
+    try{c.drawImage(image,0,0,reduced.width,reduced.height);applyCharacter(reduced.toDataURL('image/png'))}
+    catch(error){characterFeedback.textContent='No se ha podido convertir esta imagen. Prueba con PNG, JPG o WebP.'}
+  };
+  image.onerror=()=>{URL.revokeObjectURL(url);if(token===imageLoadToken)characterFeedback.textContent='Formato no compatible con este navegador. Prueba con PNG, JPG o WebP.'};
+  image.src=url;
+});
+try{
+  const saved=localStorage.getItem(CHARACTER_KEY);
+  if(saved&&saved.startsWith('data:image/png;base64,'))applyCharacter(saved,true)
+}catch(error){}
 redraw();
 </script>
 </body>
