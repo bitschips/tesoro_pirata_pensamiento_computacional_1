@@ -67,8 +67,8 @@ footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
 h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
 .subtitle{font-size:.82rem}
 .game-layout{display:grid;grid-template-columns:clamp(185px,18vw,220px) minmax(0,1fr) clamp(250px,25vw,310px);gap:12px;align-items:start}
-.toolbox{grid-column:1;grid-row:1}
-.world-panel{grid-column:2;grid-row:1}
+.toolbox{grid-column:1;grid-row:1;position:sticky;top:10px}
+.world-panel{grid-column:2;grid-row:1;position:sticky;top:10px}
 .program-box{grid-column:3;grid-row:1}
 .toolbox,.program-box,.world-panel{padding:12px;min-width:0}
 .panel-title{font-size:.9rem}
@@ -84,7 +84,7 @@ h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
 .stepper input{height:35px;width:66px}
 .tool-note{font-size:.74rem;line-height:1.35;margin-top:12px}
 .program-top{margin-bottom:9px}
-.program-list{min-height:108px;max-height:min(50vh,460px);overflow-y:auto;overscroll-behavior:contain;padding-right:3px}
+.program-list{min-height:108px;height:auto;max-height:none;overflow:visible;padding-right:3px}
 .program-line{gap:4px;padding:6px 5px}
 .line-text{font-size:.8rem}
 .line-number{min-width:17px;font-size:.7rem}
@@ -103,7 +103,7 @@ h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
   .toolbox{grid-column:1;grid-row:2}
   .program-box{grid-column:2;grid-row:2}
   .action-grid{grid-template-columns:1fr 1fr}
-  .program-list{max-height:38vh}
+  
 }
 @media(max-width:600px){
   .app{padding:9px 9px 20px}
@@ -120,7 +120,7 @@ h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
   .toolbox{grid-column:1;grid-row:2}
   .program-box{grid-column:1;grid-row:3}
   .action-grid{grid-template-columns:1fr 1fr}
-  .program-list{max-height:42vh}
+  
   .stat{padding:4px 6px}
   .stat-value{font-size:1.07rem}
 }
@@ -170,7 +170,7 @@ h1{font-size:clamp(1.6rem,2.5vw,2.2rem);margin:3px 0 4px}
 </section>
 </div>
 <p class="legend">Consejo: utiliza ↑ y ↓ en la lista para cambiar una instrucción de lugar. ✕ la elimina. No hay límite de intentos.</p>
-<footer>Versión 1.1 · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
+<footer>Versión 1.2 · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
 </main>
 <script>
 'use strict';
