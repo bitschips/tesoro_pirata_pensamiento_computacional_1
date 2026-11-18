@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111c32">
+<meta name="description" content="Juego educativo de pensamiento computacional: programa a un pirata para encontrar un tesoro.">
+<title>La isla del algoritmo · Tesoro pirata</title>
+<style>
+:root{color-scheme:dark;--ink:#eaf4fb;--muted:#afc0d1;--navy:#111c32;--panel:#1a2a42;--line:#3c5270;--gold:#ffd56c;--cyan:#83dbef}
+*{box-sizing:border-box}
+body{margin:0;min-width:310px;color:var(--ink);font-family:"Trebuchet MS",Verdana,sans-serif;background:radial-gradient(ellipse at 50% 0%,#2c5273 0%,#172941 44%,#0c1627 100%);min-height:100vh}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}button:disabled{opacity:.4;cursor:not-allowed}
+.app{max-width:1090px;margin:auto;padding:20px 18px 42px}
+header{text-align:center;margin-bottom:17px}
+.eyebrow{color:var(--cyan);letter-spacing:.25em;font-size:.71rem;font-weight:900;text-transform:uppercase}
+h1{color:var(--gold);font-size:clamp(1.7rem,4.2vw,2.75rem);text-transform:uppercase;line-height:1.15;letter-spacing:.035em;margin:9px 0;text-shadow:3px 4px 0 #87552f,0 0 35px #f7ba5940}
+.subtitle{margin:0;color:var(--muted);font-size:.98rem}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:13px;box-shadow:0 8px 0 #0b1729,0 20px 45px #0003}
+.panel-title{color:var(--gold);margin:0;font-size:1.04rem;letter-spacing:.06em;text-transform:uppercase}
+.world-panel{padding:14px}.world-top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}.mission{color:var(--muted);font-size:.83rem}
+.world-body{display:grid;grid-template-columns:minmax(0,1fr) 198px;gap:15px;align-items:stretch}
+.map-frame{position:relative;overflow:hidden;border:5px solid #9a653b;border-radius:7px;background:#e7c88d;box-shadow:inset 0 0 0 3px #5d3e28,0 5px 0 #0e1727}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+.map-ribbon{position:absolute;bottom:8px;left:9px;pointer-events:none;background:#182d36e8;border:1px solid #ffffff40;border-radius:4px;padding:5px 8px;font-size:.72rem;font-weight:bold}
+.stats{display:flex;flex-direction:column;gap:10px}
+.stat{flex:1;border:1px solid #506784;border-radius:8px;background:#122139;padding:10px 12px;display:flex;flex-direction:column;justify-content:center}
+.stat-label{color:var(--muted);text-transform:uppercase;font-size:.72rem;font-weight:bold;letter-spacing:.07em}
+.stat-value{font-family:Consolas,"Courier New",monospace;font-size:2.05rem;font-weight:bold;color:var(--gold);line-height:1.3;font-variant-numeric:tabular-nums}
+.message{margin-top:14px;padding:12px 14px;border-radius:8px;background:#132d3f;border:1px solid #39708a;color:#d9f7ff;min-height:48px;display:flex;align-items:center;line-height:1.35;font-size:.95rem}
+.message.good{color:#c9ffe3;background:#173d37;border-color:#3c9c76}.message.bad{color:#ffe0d1;background:#482b34;border-color:#bb6976}
+.work-title{margin:26px 0 12px;text-transform:uppercase;font-size:1rem;color:var(--cyan);letter-spacing:.12em}
+.work-area{display:grid;grid-template-columns:minmax(270px,.84fr) minmax(320px,1.16fr);gap:17px;align-items:start}
+.toolbox,.program-box{padding:17px}.helper{color:var(--muted);font-size:.89rem;margin:9px 0 14px;line-height:1.45}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.action{min-height:46px;border:2px solid #527494;background:#2a5071;color:white;border-radius:7px;box-shadow:0 3px 0 #102238;font-weight:800;font-size:.86rem;padding:8px 9px;transition:transform .08s,background .15s}
+.action:hover:not(:disabled){background:#32648e}.action:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #102238}
+.action.gold{background:#90652c;border-color:#d9a74c}.action.gold:hover:not(:disabled){background:#a67c37}
+.stepper{display:flex;margin-bottom:10px;align-items:center;justify-content:space-between;gap:10px;border:1px solid #415b78;border-radius:7px;background:#14243b;padding:10px}
+.stepper label{font-weight:bold;font-size:.87rem}.stepper input{width:76px;height:38px;text-align:center;color:#14243b;background:#f7ecd1;border:2px solid #b9a780;border-radius:5px;font-size:1.1rem;font-weight:bold}
+.tool-note{font-size:.78rem;color:var(--muted);margin:15px 0 0}
+.program-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.small-btn{border:1px solid #667b91;border-radius:6px;background:#263a51;color:var(--ink);font-weight:bold;padding:8px 11px;font-size:.81rem}.small-btn:hover:not(:disabled){background:#3b546f}
+.boundary{text-align:center;max-width:185px;margin:0 auto;border:2px solid #509676;background:#254d44;color:#c9ffe3;border-radius:22px;padding:5px;font-family:Consolas,"Courier New",monospace;font-weight:900;letter-spacing:.1em}
+.boundary.end{border-color:#a07151;background:#563a32;color:#ffe0b8}
+.program-list{list-style:none;padding:0;margin:10px 0;min-height:118px;display:flex;flex-direction:column;gap:7px}
+.program-list:empty::before{content:"Tu algoritmo está vacío. Haz clic en una instrucción para comenzar.";color:#bbcada;font-size:.89rem;display:flex;align-items:center;text-align:center;justify-content:center;border:2px dashed #526983;min-height:112px;padding:12px;border-radius:7px;line-height:1.45}
+.program-line{display:flex;align-items:center;gap:8px;background:#273e58;border-left:5px solid #73aee1;padding:7px 8px;border-radius:5px}
+.program-line.active{background:#534421;border-color:var(--gold);box-shadow:0 0 0 2px #eec85a55}
+.line-number{min-width:20px;text-align:center;color:#c3d4e2;font-size:.77rem;font-family:Consolas,"Courier New",monospace}
+.line-text{flex:1;font-size:.89rem;font-weight:bold;line-height:1.3}
+.line-tools{display:flex;gap:4px}.line-tools button{border:1px solid #5f7893;border-radius:4px;background:#142840;color:white;min-width:29px;height:31px;padding:0;font-size:.88rem;font-weight:bold}
+.line-tools button:hover:not(:disabled){background:#3e6385}.line-tools button.delete:hover:not(:disabled){background:#924c54}
+.controls{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:9px;margin-top:17px}
+.control{min-height:49px;border:2px solid #577795;border-radius:7px;color:white;background:#304968;font-weight:900;font-size:.84rem;box-shadow:0 3px 0 #0e192b}
+.control.play{color:#112e26;background:#8fe4b6;border-color:#b5ffdb}.control:hover:not(:disabled){filter:brightness(1.12)}
+.legend{margin:16px 0 0;text-align:center;color:#b3c7d7;font-size:.79rem;line-height:1.5}
+footer{text-align:center;color:#8ca7bd;font-size:.74rem;margin-top:26px}
+@media(max-width:760px){.world-body{grid-template-columns:1fr}.stats{flex-direction:row}.stat{text-align:center;padding:8px}.stat-value{font-size:1.55rem}.work-area{grid-template-columns:1fr}.app{padding:14px 11px 32px}}
+@media(max-width:400px){.controls{grid-template-columns:1fr 1fr}.controls .play{grid-column:1/-1}.program-line{gap:5px}.line-tools{gap:2px}.line-tools button{min-width:27px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+<div class="eyebrow">Misión de pensamiento computacional</div>
+<h1>La isla del algoritmo</h1>
+<p class="subtitle">¡Da órdenes al pirata y consigue el tesoro!</p>
+</header>
+<section class="panel world-panel" aria-labelledby="map-title">
+<div class="world-top"><h2 class="panel-title" id="map-title">01 · Mapa del tesoro</h2><span class="mission">Nivel 1 · Evita las rocas y abre el cofre</span></div>
+<div class="world-body">
+<div class="map-frame"><canvas id="map" width="448" height="320" role="img" aria-label="Mapa de 7 columnas y 5 filas. El pirata comienza abajo a la izquierda mirando hacia la derecha. El tesoro está en la columna 7, fila 2. Hay rocas que debes evitar."></canvas><div class="map-ribbon">PIRATA → COFRE</div></div>
+<div class="stats" aria-label="Contadores"><div class="stat"><span class="stat-label">Instrucciones</span><span class="stat-value" id="instructions">0</span></div><div class="stat"><span class="stat-label">Intentos</span><span class="stat-value" id="attempts">0</span></div><div class="stat"><span class="stat-label">Casillas andadas</span><span class="stat-value" id="moves">0</span></div></div>
+</div>
+<div class="message" id="message" role="status" aria-live="polite">El pirata espera tus órdenes. Añade instrucciones y pulsa «Ejecutar».</div>
+</section>
+<h2 class="work-title">02 · Construye tu algoritmo</h2>
+<div class="work-area">
+<section class="panel toolbox" aria-labelledby="tools-title">
+<h3 class="panel-title" id="tools-title">Elige instrucciones</h3>
+<p class="helper">Haz clic en cada orden. Se añadirá al final del algoritmo, en orden.</p>
+<div class="stepper"><label for="steps">Número de pasos</label><input id="steps" type="number" min="1" max="9" step="1" value="1" inputmode="numeric"></div>
+<div class="action-grid">
+<button type="button" class="action" data-command="walk">↑ Andar pasos</button>
+<button type="button" class="action" data-command="left">↶ Girar izquierda</button>
+<button type="button" class="action" data-command="right">↷ Girar derecha</button>
+<button type="button" class="action gold" data-command="take">◆ Coger tesoro</button>
+<button type="button" class="action" data-command="stop">■ Parar</button>
+</div>
+<p class="tool-note">Atención: «Andar» avanza en la dirección en la que mira el pirata. Girar no cambia de casilla.</p>
+</section>
+<section class="panel program-box" aria-labelledby="program-title">
+<div class="program-top"><h3 class="panel-title" id="program-title">Tu algoritmo</h3><button type="button" id="clear" class="small-btn">Borrar todo</button></div>
+<div class="boundary">INICIO</div>
+<ol class="program-list" id="program" aria-label="Lista vertical de instrucciones"></ol>
+<div class="boundary end">FIN</div>
+<div class="controls">
+<button type="button" class="control play" id="play">▶ Ejecutar</button>
+<button type="button" class="control" id="step">▷ Paso a paso</button>
+<button type="button" class="control" id="reset">↺ Reiniciar</button>
+</div>
+</section>
+</div>
+<p class="legend">Consejo: utiliza ↑ y ↓ en la lista para cambiar una instrucción de lugar. ✕ la elimina. No hay límite de intentos.</p>
+<footer>Versión 1.0 · Juego educativo · HTML + CSS + JavaScript · Sin sonido</footer>
+</main>
+<script>
+'use strict';
+const canvas=document.getElementById('map');
+const ctx=canvas.getContext('2d');
+const TILE=64,COLS=7,ROWS=5;
+const rocks=new Set(['3,4','4,3','1,2','5,2','3,0','5,4','0,1']);
+const treasure={x:6,y:1};
+const startingPosition=()=>({x:0,y:4,direction:0});
+const directions=[{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0},{dx:0,dy:-1}];
+const labels={walk:'Andar',left:'Girar a la izquierda',right:'Girar a la derecha',take:'Coger tesoro',stop:'Parar'};
+const message=document.getElementById('message');
+const programView=document.getElementById('program');
+const stepsInput=document.getElementById('steps');
+const commandButtons=[...document.querySelectorAll('[data-command]')];
+const playButton=document.getElementById('play');
+const stepButton=document.getElementById('step');
+const resetButton=document.getElementById('reset');
+const clearButton=document.getElementById('clear');
+const stats={instructions:document.getElementById('instructions'),attempts:document.getElementById('attempts'),moves:document.getElementById('moves')};
+let program=[],attempts=0,moves=0,pirate=startingPosition(),cursor=0,activeIndex=-1,running=false,sessionStarted=false,finished=false,generation=0,collected=false;
+function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function paintRock(x,y){
+rect(x+10,y+46,46,7,'#b69a6c');rect(x+14,y+24,38,27,'#626e78');
+rect(x+21,y+16,24,34,'#7f8990');rect(x+25,y+12,15,9,'#aab4ae');
+rect(x+15,y+35,9,13,'#57636c');rect(x+39,y+27,11,14,'#535e69');rect(x+26,y+21,7,5,'#c3c4b4')
+}
+function paintIsland(){
+for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+const px=x*TILE,py=y*TILE,seed=x*23+y*47;
+rect(px,py,TILE,TILE,(x+y)%2?'#edcf92':'#e7c489');
+rect(px,py,TILE,2,'#f4dfaa');rect(px,py,2,TILE,'#f4dfaa');
+rect(px+2,py+2,60,1,'#e0b77c');
+rect(px+12+seed%18,py+12+seed%21,4,3,'#dbb77a');
+rect(px+39+seed%7,py+39+seed%8,3,3,'#fff0bc');
+if((x*7+y*5)%6===0&&!rocks.has(x+','+y)&&!(x===pirate.x&&y===pirate.y)){
+rect(px+8,py+43,4,10,'#659766');rect(px+5,py+39,4,6,'#6c9a67');rect(px+12,py+40,4,7,'#7ea568')
+}
+}
+for(const item of rocks){const [x,y]=item.split(',').map(Number);paintRock(x*TILE,y*TILE)}
+}
+function paintTreasure(){
+const x=treasure.x*TILE,y=treasure.y*TILE;
+rect(x+8,y+51,51,6,'#c6a26e');
+if(collected){rect(x+13,y+34,42,20,'#56371f');rect(x+17,y+40,34,9,'#9f6330');rect(x+17,y+15,35,14,'#734420');rect(x+18,y+13,33,5,'#ffd670');return}
+rect(x+11,y+26,44,27,'#432a1c');rect(x+14,y+29,38,21,'#ae7132');rect(x+10,y+21,46,14,'#472b20');
+rect(x+13,y+17,40,13,'#ca9040');rect(x+17,y+18,30,3,'#f7d377');rect(x+29,y+19,8,33,'#f3c358');
+rect(x+28,y+35,10,12,'#ffe89e');rect(x+6,y+12,5,5,'#fff5bb');rect(x+8,y+6,2,14,'#fff5bb');rect(x+52,y+10,4,4,'#fff5bb')
+}
+function paintPirate(){
+const px=pirate.x*TILE+8,py=pirate.y*TILE+4;
+ctx.save();ctx.translate(px+24,py+28);ctx.rotate(pirate.direction*Math.PI/2);ctx.translate(-24,-28);
+rect(5,49,38,5,'#c69d6c');rect(12,39,10,10,'#3b4665');rect(26,39,10,10,'#3b4665');
+rect(10,48,13,5,'#372d31');rect(26,48,13,5,'#372d31');
+rect(8,28,34,15,'#b64641');rect(13,30,23,10,'#e35b4c');
+rect(3,29,9,8,'#e1a879');rect(37,29,9,8,'#e1a879');
+rect(14,14,23,16,'#e9ae7b');rect(15,21,8,5,'#fff0cc');
+rect(25,21,10,7,'#263445');rect(19,26,12,4,'#995537');
+rect(12,11,28,7,'#272e3e');rect(7,16,38,5,'#272e3e');
+rect(17,4,19,9,'#323848');rect(17,10,19,3,'#ebcf68');rect(39,12,7,4,'#c75c52');
+ctx.restore();
+const cx=pirate.x*TILE+32,cy=pirate.y*TILE+32;
+ctx.save();ctx.translate(cx,cy);ctx.rotate(pirate.direction*Math.PI/2);
+rect(24,-3,10,6,'#fff7b0');rect(30,-7,5,14,'#fff7b0');ctx.restore()
+}
+function drawMap(){ctx.clearRect(0,0,canvas.width,canvas.height);paintIsland();paintTreasure();paintPirate()}
+function instructionLabel(instruction){return instruction.type==='walk'?'Andar '+instruction.steps+' '+(instruction.steps===1?'paso':'pasos'):labels[instruction.type]}
+function status(text,kind=''){message.textContent=text;message.className=('message '+kind).trim()}
+function refreshStats(){stats.instructions.textContent=program.length;stats.attempts.textContent=attempts;stats.moves.textContent=moves}
+function resetGame(showMessage=true){
+generation++;running=false;pirate=startingPosition();cursor=0;activeIndex=-1;sessionStarted=false;finished=false;collected=false;moves=0;
+if(showMessage)status('Pirata preparado. Ejecuta tu algoritmo o compruébalo paso a paso.');redraw()
+}
+function redraw(){drawMap();refreshStats();renderProgram();updateControls()}
+function updateControls(){
+commandButtons.forEach(btn=>btn.disabled=running);stepsInput.disabled=running;
+clearButton.disabled=running||!program.length;
+playButton.disabled=running||!program.length;
+stepButton.disabled=running||!program.length;
+resetButton.disabled=!sessionStarted&&!running&&moves===0
+}
+function renderProgram(){
+programView.replaceChildren();
+program.forEach((instruction,index)=>{
+const line=document.createElement('li');line.className='program-line'+(index===activeIndex?' active':'');
+if(index===activeIndex)line.setAttribute('aria-current','step');
+const number=document.createElement('span');number.className='line-number';number.textContent=String(index+1).padStart(2,'0');
+const title=document.createElement('span');title.className='line-text';title.textContent=instructionLabel(instruction);
+const buttonsDiv=document.createElement('div');buttonsDiv.className='line-tools';
+const buttons=[
+{symbol:'↑',title:'Subir instrucción',disabled:index===0,operation:()=>moveInstruction(index,-1)},
+{symbol:'↓',title:'Bajar instrucción',disabled:index===program.length-1,operation:()=>moveInstruction(index,1)},
+{symbol:'✕',title:'Eliminar instrucción',disabled:false,operation:()=>deleteInstruction(index)}
+];
+for(const item of buttons){
+const button=document.createElement('button');button.type='button';button.textContent=item.symbol;
+button.title=item.title;button.setAttribute('aria-label',item.title+' '+(index+1));
+button.disabled=running||item.disabled;
+if(item.symbol==='✕')button.className='delete';
+button.addEventListener('click',item.operation);buttonsDiv.append(button)
+}
+line.append(number,title,buttonsDiv);programView.append(line)
+})
+}
+function editedProgram(){
+if(sessionStarted||finished||moves)resetGame(false);
+status('Algoritmo actualizado. Cuando quieras, pulsa «Ejecutar».');redraw()
+}
+function addInstruction(type){
+if(running)return;
+let steps=1;
+if(type==='walk'){
+steps=Number(stepsInput.value);
+if(!Number.isInteger(steps)||steps<1||steps>9){status('Elige un número entero de pasos entre 1 y 9.','bad');stepsInput.focus();return}
+}
+program.push({type,steps});editedProgram()
+}
+function moveInstruction(index,delta){
+if(running)return;
+const other=index+delta;
+if(other<0||other>=program.length)return;
+[program[index],program[other]]=[program[other],program[index]];editedProgram()
+}
+function deleteInstruction(index){if(running)return;program.splice(index,1);editedProgram()}
+function beginAttempt(){resetGame(false);attempts++;sessionStarted=true;refreshStats()}
+const pause=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
+async function executeOne(id){
+if(id!==generation||finished||cursor>=program.length)return;
+const command=program[cursor];activeIndex=cursor;renderProgram();
+status('Instrucción '+(cursor+1)+': '+instructionLabel(command)+'.');
+if(command.type==='walk'){
+for(let n=0;n<command.steps;n++){
+await pause(390);
+if(id!==generation)return;
+const direction=directions[pirate.direction],nextX=pirate.x+direction.dx,nextY=pirate.y+direction.dy;
+if(nextX<0||nextX>=COLS||nextY<0||nextY>=ROWS){finished=true;status('¡Te has salido de la isla! Revisa los pasos y los giros.','bad');return}
+if(rocks.has(nextX+','+nextY)){finished=true;status('¡Una roca bloquea el camino! Cambia el algoritmo para rodearla.','bad');return}
+pirate.x=nextX;pirate.y=nextY;moves++;drawMap();refreshStats()
+}
+}else if(command.type==='left'){
+pirate.direction=(pirate.direction+3)%4;drawMap();await pause(280)
+}else if(command.type==='right'){
+pirate.direction=(pirate.direction+1)%4;drawMap();await pause(280)
+}else if(command.type==='take'){
+if(pirate.x===treasure.x&&pirate.y===treasure.y){
+collected=true;finished=true;drawMap();
+status('¡Tesoro conseguido! Has usado '+program.length+' instrucciones, '+moves+' movimientos y '+attempts+' '+(attempts===1?'intento.':'intentos.'),'good')
+}else{finished=true;status('Aquí no está el tesoro. ¡Acércate al cofre antes de cogerlo!','bad')}
+await pause(280)
+}else if(command.type==='stop'){finished=true;status('El pirata se ha parado sin recoger el tesoro. Revisa el algoritmo.','bad')}
+if(id!==generation)return;
+cursor++;
+if(cursor>=program.length&&!finished){finished=true;status('El algoritmo ha terminado, pero falta recoger el tesoro. Añade la instrucción «Coger tesoro».','bad')}
+}
+async function executeAll(){
+if(running||!program.length)return;beginAttempt();const id=generation;running=true;redraw();
+while(id===generation&&!finished&&cursor<program.length)await executeOne(id);
+if(id!==generation)return;running=false;redraw()
+}
+async function executeStep(){
+if(running||!program.length)return;
+if(!sessionStarted||finished)beginAttempt();
+const id=generation;running=true;redraw();await executeOne(id);
+if(id!==generation)return;running=false;redraw();
+if(!finished)status('Instrucción '+cursor+' completada. Pulsa «Paso a paso» para continuar.')
+}
+commandButtons.forEach(button=>button.addEventListener('click',()=>addInstruction(button.dataset.command)));
+playButton.addEventListener('click',executeAll);
+stepButton.addEventListener('click',executeStep);
+resetButton.addEventListener('click',()=>resetGame());
+clearButton.addEventListener('click',()=>{
+if(running)return;
+program=[];resetGame(false);status('Algoritmo borrado. Puedes construir uno nuevo.')
+});
+redraw();
+</script>
+</body>
+</html>
